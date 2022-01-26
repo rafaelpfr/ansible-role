@@ -1,0 +1,38 @@
+---
+# tasks file for vhost
+
+- name: Install Apache
+  yum:
+    name: httpd
+    state: latest
+
+- name: start and enable httpd
+  service:
+    name: httpd
+    state: started
+    enabled: true
+
+- name: Configuring Firewall
+  firewalld:
+    service: http
+    permanent: yes
+    state: enabled
+    immediate: yes
+
+- name: Copy index.html to /var/www/vhosts
+  copy:
+    src: index.html
+    dest: /var/www/vhosts/{{ ansible_hostname }}/
+    owner: apache
+    group: apache
+    mode: '0755'
+
+- name: Template file templates/vhost.conf to /etc/httpd/conf.d/
+  template:
+    src: vhost.conf.j2
+    dest: /etc/httpd/conf.d/vhost.conf
+    owner: root
+    group: root
+    mode: '0755'
+  notify:
+    - restart httpd
